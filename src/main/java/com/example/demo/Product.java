@@ -20,9 +20,6 @@ public class Product {
     private String description; // Mô tả
     
     private double price; // Đơn giá
-    
-    @Column(name = "stock_quantity")
-    private int stockQuantity; // Số lượng
 
     // Constructor mặc định
     public Product() {}
@@ -46,6 +43,4 @@ public class Product {
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 
-    public int getStockQuantity() { return stockQuantity; }
-    public void setStockQuantity(int stockQuantity) { this.stockQuantity = stockQuantity; }
 }

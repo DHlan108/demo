@@ -33,6 +33,7 @@ function fetchProducts() {
             const tbody = document.getElementById('productTableBody');
             tbody.innerHTML = ''; // Xóa dữ liệu cũ
             
+            // Vẽ lại bảng với danh sách sản phẩm tìm được
             data.forEach(product => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -41,7 +42,6 @@ function fetchProducts() {
                     <td><span class="badge bg-secondary">${product.category || ''}</span></td>
                     <td style="max-width: 250px; font-size: 13px;">${product.description || ''}</td>
                     <td class="text-danger fw-bold">${product.price.toLocaleString('vi-VN')} đ</td>
-                    <td>${product.stockQuantity || 0}</td>
                     <td>
                         <button class="btn btn-sm btn-warning mb-1" onclick="editProduct(${product.id})">Sửa</button>
                         <button class="btn btn-sm btn-danger mb-1" onclick="deleteProduct('${product.productCode}')">Xóa</button>
@@ -65,7 +65,6 @@ document.getElementById('productForm').addEventListener('submit', function(event
         productCode: document.getElementById('productCode').value,
         name: document.getElementById('name').value,
         category: document.getElementById('category').value,
-        stockQuantity: document.getElementById('stockQuantity').value,
         price: document.getElementById('price').value,
         description: document.getElementById('description').value
     };
@@ -103,7 +102,6 @@ function editProduct(id) {
             document.getElementById('productCode').value = product.productCode;
             document.getElementById('name').value = product.name;
             document.getElementById('category').value = product.category;
-            document.getElementById('stockQuantity').value = product.stockQuantity;
             document.getElementById('price').value = product.price;
             document.getElementById('description').value = product.description;
         })
@@ -161,7 +159,6 @@ document.getElementById('searchInput').addEventListener('input', function() {
                     <td><span class="badge bg-secondary">${product.category || ''}</span></td>
                     <td style="max-width: 250px; font-size: 13px;">${product.description || ''}</td>
                     <td class="text-danger fw-bold">${product.price.toLocaleString('vi-VN')} đ</td>
-                    <td>${product.stockQuantity || 0}</td>
                     <td>
                         <button class="btn btn-sm btn-warning mb-1" onclick="editProduct(${product.id})">Sửa</button>
                         <button class="btn btn-sm btn-danger mb-1" onclick="deleteProduct('${product.productCode}')">Xóa</button>
@@ -204,4 +201,90 @@ document.getElementById('sortSelect').addEventListener('change', function() {
     // Xóa dữ liệu cũ trên bảng và đắp các dòng đã sắp xếp vào lại
     tbody.innerHTML = '';
     rows.forEach(row => tbody.appendChild(row));
+});
+// HIỂN THỊ BÁO CÁO TỒN KHO ---
+function fetchInventoryReport() {
+    // Gọi API đã dùng lệnh JOIN 3 bảng
+    fetch('http://localhost:8080/api/inventory/report')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = ''; // Xóa trắng bảng
+            
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center">Chưa có dữ liệu tồn kho!</td></tr>';
+                return;
+            }
+
+            // Vẽ từng dòng báo cáo
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${item.productName}</b></td>
+                    <td>${item.storeName}</td>
+                    <td class="text-primary fw-bold">${item.stockQuantity}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(error => console.error('Lỗi khi tải báo cáo tồn kho:', error));
+}
+
+// Gọi hàm tải báo cáo ngay khi trang web mở lên
+fetchInventoryReport();
+// --- XỬ LÝ FORM NHẬP KHO ---
+
+// Hàm tải danh sách thả xuống (Dropdown)
+function loadInventoryDropdowns() {
+    // Tải danh sách Sản phẩm
+    fetch('http://localhost:8080/api/products')
+        .then(res => res.json())
+        .then(products => {
+            const prodSelect = document.getElementById('invProductId');
+            prodSelect.innerHTML = '<option value="">-- Click để chọn --</option>';
+            products.forEach(p => {
+                prodSelect.innerHTML += `<option value="${p.id}">${p.name} (${p.productCode})</option>`;
+            });
+        });
+
+    // Tải danh sách Cửa hàng
+    fetch('http://localhost:8080/api/stores')
+        .then(res => res.json())
+        .then(stores => {
+            const storeSelect = document.getElementById('invStoreId');
+            storeSelect.innerHTML = '<option value="">-- Click để chọn --</option>';
+            stores.forEach(s => {
+                storeSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        });
+}
+
+// Gọi hàm tải danh sách thả xuống khi mở trang
+loadInventoryDropdowns();
+
+// Xử lý khi bấm nút "Lưu" trên Form Nhập Kho
+document.getElementById('inventoryForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const requestData = {
+        productId: document.getElementById('invProductId').value,
+        storeId: document.getElementById('invStoreId').value,
+        stockQuantity: document.getElementById('invQuantity').value
+    };
+
+    fetch('http://localhost:8080/api/inventory/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Nhập kho thành công!');
+            document.getElementById('invQuantity').value = ''; // Xóa trắng ô số lượng
+            fetchInventoryReport(); // Tự động load lại Bảng Báo cáo ngay bên dưới
+        } else {
+            alert('❌ Lỗi nhập kho, vui lòng thử lại!');
+        }
+    })
+    .catch(error => console.error('Lỗi khi lưu tồn kho:', error));
 });

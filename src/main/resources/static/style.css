@@ -1,0 +1,28 @@
+/* --- BẢNG SẢN PHẨM --- */
+.table-container {
+    max-height: 500px; 
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    margin-bottom: 30px;
+}
+
+/* Ghim tiêu đề bảng và đổi sang màu tối */
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #212529; 
+    color: white;
+}
+
+/* --- BẢN ĐỒ --- */
+#map {
+    height: 550px; 
+    width: 100%; 
+    border-radius: 8px;
+    border: 2px solid #dc3545; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+    margin-bottom: 50px
+}

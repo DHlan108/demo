@@ -1,7 +1,9 @@
 package com.example.demo;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.List;
 @Entity
 @Table(name = "products")
 public class Product {
@@ -21,6 +23,9 @@ public class Product {
     
     private double price; // Đơn giá
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Inventory> inventories;
     // Constructor mặc định
     public Product() {}
 
